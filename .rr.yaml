@@ -1,0 +1,53 @@
+# http service configuration.
+http:
+  address: 0.0.0.0:8080
+
+  workers:
+    command: "php app.php"
+
+# queue and jobs
+jobs:
+  dispatch:
+    app-job-*.pipeline: "local"
+  pipelines:
+    local:
+      broker: "ephemeral"
+  consume: ["local"]
+
+  workers:
+    command: "php app.php"
+    pool.numWorkers: 2
+
+# serve static files
+static:
+  dir:    "public"
+  forbid: [".php", ".htaccess"]
+
+metrics:
+  # prometheus client address (path /metrics added automatically)
+  address: localhost:2112
+
+# control the max memory usage
+limit:
+  services:
+    http.maxMemory: 100
+    jobs.maxMemory: 100
+
+# reload on file changes
+reload:
+    # sync interval
+    interval: 1s
+    # global patterns to sync
+    patterns: [ ".php" ]
+    # list of included for sync services
+    services:
+        http:
+            # recursive search for file patterns to add
+            recursive: true
+            # ignored folders
+            ignore: [ "vendor", "runtime"]
+            # service specific file pattens to sync
+            patterns: [ ".php", ".go", ".md" ]
+            # directories to sync. If recursive is set to true,
+            # recursive sync will be applied only to the directories in `dirs` section
+            dirs: [ "." ]
